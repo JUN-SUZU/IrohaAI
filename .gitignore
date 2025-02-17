@@ -1,0 +1,9 @@
+build/
+tools/dictionary/rdictionary.txt
+tools/dictionary/rlex.csv
+tools/dictionary/sdictionary.txt
+tools/dictionary/slex.csv
+tools/matrix/matrix.def
+tools/matrix/matrix.bin
+matrix.def
+.vscode/
