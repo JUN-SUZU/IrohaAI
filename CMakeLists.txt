@@ -6,3 +6,6 @@ cmake_minimum_required(VERSION 3.13)
 project(MorphologicalAnalysis CXX)
 # 実行ファイルを生成
 add_executable(MorphologicalAnalysis divideSentence.cpp lib/UTF8ConvUtils/util.cpp lib/LoadMatrix/util.cpp)
+
+project(Sentakuki CXX)
+add_executable(Sentakuki sentakuki.cpp lib/UTF8ConvUtils/util.cpp lib/LoadMatrix/util.cpp)
