@@ -11,14 +11,14 @@ using namespace std;
 
 struct WordInfo
 {
-    wstring surface;         // 表層形
-    string pos;              // 品詞(名詞、動詞、形容詞、副詞、助詞、助動詞、接続詞、感動詞)
-    string conjugationForm;  // 活用形(未然形、連用形、終止形、連体形、已然形、命令形)
-    string conjugationType;  // 活用型(五段、カ変、サ変)
-    string pronunciation;    // 読み(カタカナ)
-    int leftConnectionId;  // 左文脈ID
-    int rightConnectionId; // 右文脈ID
-    int vitalCost;           // 使用コスト(大きいほど使われにくい)
+    wstring surface;        // 表層形
+    string pos;             // 品詞(名詞、動詞、形容詞、副詞、助詞、助動詞、接続詞、感動詞)
+    string conjugationForm; // 活用形(未然形、連用形、終止形、連体形、已然形、命令形)
+    string conjugationType; // 活用型(五段、カ変、サ変)
+    string pronunciation;   // 読み(カタカナ)
+    int leftConnectionId;   // 左文脈ID
+    int rightConnectionId;  // 右文脈ID
+    int vitalCost;          // 使用コスト(大きいほど使われにくい)
 };
 // 辞書の単語を表す構造体
 vector<WordInfo> dictionary;
@@ -56,7 +56,6 @@ void loadDictionary(const string &filename)
     }
     cout << "辞書読み込み完了: " << count << "単語" << endl;
 }
-
 
 string matrixPath = "tools/matrix/matrix.bin";
 vector<vector<int>> connectionMatrix = LoadMatrixUtil::loadMatrix(matrixPath);
@@ -101,7 +100,15 @@ vector<WordInfo> viterbiSegment(const string &sentenceUTF8)
         void findBestPath(int index, int currentCost, int previousIndex)
         {
             if (index == n)
+            {
+                cout << "end of the sentence word: " << Utf8ConvUtil::wstringToUtf8(dictionary[dictionaryIndex[previousIndex]].surface) << endl;
+                if (currentCost < totalCost[index])
+                {
+                    totalCost[index] = currentCost;
+                    prevIndex[index] = previousIndex;
+                }
                 return;
+            }
             currentCost += cost[index] + connectionMatrix[dictionary[dictionaryIndex[previousIndex]].rightConnectionId][dictionary[dictionaryIndex[index]].leftConnectionId];
             if (currentCost >= totalCost[index])
                 return;
@@ -140,28 +147,34 @@ vector<WordInfo> viterbiSegment(const string &sentenceUTF8)
         for (int j = 0; j < beginNode.size(); j++)
         {
             if (i + dictionary[beginNode[j]].surface.size() == n)
-                break;
-            vector<int> nextNodeList = beginNextList[i + dictionary[beginNode[j]].surface.size()];
-            for (int k = 0; k < nextNodeList.size(); k++)
             {
-                bp.nextList[nextIndex].push_back(nextNodeList[k]);
+                bp.nextList[nextIndex].push_back(bp.n);
+                continue;
+            }
+            else
+            {
+                vector<int> nextNodeList = beginNextList[i + dictionary[beginNode[j]].surface.size()];
+                for (int k = 0; k < nextNodeList.size(); k++)
+                {
+                    bp.nextList[nextIndex].push_back(nextNodeList[k]);
+                }
             }
             nextIndex++;
         }
     }
-    bp.prevIndex = vector<int>(bp.n, -1);
-    bp.totalCost = vector<int>(bp.n, numeric_limits<int>::max());
+    bp.prevIndex = vector<int>(bp.n + 1, -1);
+    bp.totalCost = vector<int>(bp.n + 1, numeric_limits<int>::max());
     for (int i : beginNextList[0])
     {
         bp.findBestPath(i, 0, -1);
     }
     vector<WordInfo> result;
     vector<int> reverseIndex;
-    int index = bp.n - 1;
+    int index = bp.n;
     while (true)
     {
         cout << index << " << ";
-        reverseIndex.push_back(index);
+        if (index!=bp.n) reverseIndex.push_back(index);
         if (bp.prevIndex[index] == -1)
             break;
         index = bp.prevIndex[index];
@@ -179,17 +192,20 @@ int main()
 {
     string dictPath = "tools/dictionary/sdictionary.txt";
     loadDictionary(dictPath);
-    string input;
-    cout << "文章を入力してください: " << endl;
-    getline(cin, input);
-    vector<WordInfo> segmented = viterbiSegment(input);
-
-    cout << "分割結果: " << endl;
-    for (const auto &word : segmented)
+    while (true)
     {
-        cout << Utf8ConvUtil::wstringToUtf8(word.surface) << "\t" << word.pos << "\t" << word.pronunciation << endl;
+        string input;
+        cout << "文章を入力してください: " << endl;
+        getline(cin, input);
+        vector<WordInfo> segmented = viterbiSegment(input);
+
+        cout << "分割結果: " << endl;
+        for (const auto &word : segmented)
+        {
+            cout << Utf8ConvUtil::wstringToUtf8(word.surface) << "\t" << word.pos << "\t" << word.pronunciation << endl;
+        }
+        cout << endl;
     }
-    cout << endl;
 
     return 0;
 }
