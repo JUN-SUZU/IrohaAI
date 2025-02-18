@@ -101,7 +101,6 @@ vector<WordInfo> viterbiSegment(const string &sentenceUTF8)
         {
             if (index == n)
             {
-                cout << "end of the sentence word: " << Utf8ConvUtil::wstringToUtf8(dictionary[dictionaryIndex[previousIndex]].surface) << endl;
                 if (currentCost < totalCost[index])
                 {
                     totalCost[index] = currentCost;
